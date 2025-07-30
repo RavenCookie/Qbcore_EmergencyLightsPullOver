@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RV-Emergency Debug UI</title>
+    <style>
+        body { background: rgba(20,20,20,0.95); color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 350px; margin: 40px auto; background: #222; border-radius: 10px; box-shadow: 0 0 10px #0008; padding: 24px; }
+        h2 { margin-top: 0; color: #6cf; }
+        .status { margin: 12px 0; font-size: 1.1em; }
+        .btn { background: #6cf; color: #222; border: none; border-radius: 5px; padding: 10px 18px; font-size: 1em; cursor: pointer; margin: 8px 0; }
+        .btn:active { background: #4ad; }
+        .ai-list { margin: 10px 0; max-height: 120px; overflow-y: auto; background: #181818; border-radius: 5px; padding: 8px; }
+        .ai-item { margin-bottom: 6px; font-size: 0.98em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>RV-Emergency Debug</h2>
+        <div class="status" id="debugStatus">Debug: OFF</div>
+        <button class="btn" id="toggleDebug">Toggle Debug</button>
+        <div class="status">AI Vehicles Pulled Over:</div>
+        <div class="ai-list" id="aiList">None</div>
+    </div>
+    <script>
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'status') {
+                document.getElementById('debugStatus').textContent = 'Debug: ' + (event.data.debug ? 'ON' : 'OFF');
+                const aiList = event.data.vehicles || [];
+                const aiListDiv = document.getElementById('aiList');
+                if (aiList.length === 0) {
+                    aiListDiv.textContent = 'None';
+                } else {
+                    aiListDiv.innerHTML = aiList.map(v => `<div class='ai-item'>Vehicle: ${v.handle} | Honk: ${v.shouldHonk ? 'Yes' : 'No'}</div>`).join('');
+                }
+            }
+        });
+        document.getElementById('toggleDebug').onclick = function() {
+            fetch('https://rv-emegency/toggleDebug', { method: 'POST' });
+        };
+        // ESC to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fetch('https://rv-emegency/close', { method: 'POST' });
+            }
+        });
+    </script>
+</body>
+</html>
